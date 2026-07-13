@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+<title>La Lista del Día — Pedidos Panadería</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap');
+
+  :root {
+    --bg: #241812;
+    --bg-panel: #2F2117;
+    --ticket: #FAF3E4;
+    --ticket-edge: #EDE2C8;
+    --gold: #D9A441;
+    --gold-dim: #B98530;
+    --stamp-red: #B4432E;
+    --stamp-green: #5C7A54;
+    --stamp-blue: #4A6B7A;
+    --text-dark: #2B1D14;
+    --muted: #8B7355;
+    --cream: #FAF3E4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    font-family: 'Work Sans', sans-serif;
+    color: var(--text-dark);
+    min-height: 100vh;
+  }
+  .hidden { display: none !important; }
+  .center-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+  }
+  .logo-badge {
+    width: 56px; height: 56px; border-radius: 999px;
+    background: var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px auto;
+    font-size: 28px;
+  }
+  h1.brand {
+    font-family: 'Fraunces', serif;
+    color: var(--cream);
+    font-size: 30px;
+    font-weight: 600;
+    text-align: center;
+    margin: 0;
+    letter-spacing: -0.5px;
+  }
+  .subtitle { color: var(--muted); text-align: center; font-size: 14px; margin-top: 6px; }
+
+  .card {
+    background: var(--ticket);
+    border-radius: 4px;
+    padding: 24px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    position: relative;
+  }
+  .perf-top {
+    position: absolute; top: -6px; left: 0; right: 0; height: 10px;
+    background-image: radial-gradient(circle, var(--bg) 45%, transparent 46%);
+    background-size: 16px 16px; background-position: -8px 0;
+    opacity: 0.9;
+  }
+  label.field-label {
+    display: block; color: var(--muted); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px;
+  }
+  input, textarea {
+    width: 100%; border: none; border-bottom: 2px solid var(--ticket-edge);
+    background: transparent; padding: 8px 0; font-size: 16px; color: var(--text-dark);
+    outline: none; font-family: inherit;
+  }
+  textarea { resize: none; }
+  .btn-primary {
+    width: 100%; background: var(--text-dark); color: var(--cream);
+    border: none; padding: 13px; border-radius: 4px; font-weight: 500;
+    letter-spacing: 0.5px; font-size: 15px; margin-top: 8px; cursor: pointer;
+  }
+  .btn-primary:active { opacity: 0.85; }
+  .login-note { color: var(--muted); font-size: 11px; margin-top: 14px; text-align: center; line-height: 1.4; }
+  .login-error { color: var(--stamp-red); font-size: 13px; margin-bottom: 8px; }
+
+  /* Header */
+  header {
+    background: var(--bg-panel); position: sticky; top: 0; z-index: 20;
+    border-bottom: 1px solid rgba(217,164,65,0.15);
+  }
+  .header-row {
+    max-width: 640px; margin: 0 auto; padding: 14px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .header-left { display: flex; align-items: center; gap: 10px; }
+  .header-badge {
+    width: 36px; height: 36px; border-radius: 999px; background: var(--gold);
+    display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;
+  }
+  .header-title { font-family: 'Fraunces', serif; color: var(--cream); font-size: 19px; font-weight: 600; line-height: 1; margin: 0; }
+  .header-sub { color: var(--muted); font-size: 12px; margin: 4px 0 0 0; }
+  .icon-btn {
+    background: none; border: none; color: var(--muted); padding: 8px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .icon-btn:active { color: white; }
+  .filters {
+    max-width: 640px; margin: 0 auto; padding: 0 16px 12px 16px;
+    display: flex; gap: 8px; overflow-x: auto;
+  }
+  .pill {
+    border: 1px solid rgba(139,115,85,0.4); border-radius: 999px; padding: 6px 12px;
+    font-size: 12px; font-weight: 500; white-space: nowrap; background: transparent;
+    color: var(--muted); display: flex; align-items: center; gap: 6px; cursor: pointer;
+  }
+  .pill.active { background: var(--gold); color: var(--bg); border-color: var(--gold); }
+  .dot { width: 6px; height: 6px; border-radius: 999px; }
+
+  .banner-error {
+    max-width: 640px; margin: 12px auto 0 auto; padding: 8px 16px; border-radius: 6px;
+    background: var(--stamp-red); color: var(--cream); font-size: 14px;
+  }
+
+  main { max-width: 640px; margin: 20px auto 0 auto; padding: 0 16px 120px 16px; display: flex; flex-direction: column; gap: 16px; }
+  .empty-state { text-align: center; color: var(--muted); padding: 60px 0; font-size: 14px; }
+
+  .ticket-card { background: var(--ticket); border-radius: 4px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); position: relative; overflow: hidden; }
+  .ticket-perf { position: absolute; top: -6px; left: 0; right: 0; height: 12px; background-image: radial-gradient(circle, var(--bg) 45%, transparent 46%); background-size: 14px 14px; background-position: -7px -7px; }
+  .ticket-body { padding: 20px 20px 18px 20px; padding-top: 24px; }
+  .ticket-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .ticket-name { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 600; line-height: 1.2; margin: 0; }
+  .ticket-item { color: var(--muted); font-size: 14px; margin: 4px 0 0 0; }
+  .ticket-phone { color: var(--muted); font-size: 12px; margin-top: 6px; display: flex; align-items: center; gap: 4px; }
+  .ticket-thumb { width: 64px; height: 64px; border-radius: 4px; overflow: hidden; border: 2px solid var(--ticket-edge); flex-shrink: 0; background: none; padding: 0; cursor: pointer; }
+  .ticket-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .estado-stamp {
+    border: 2px solid; border-radius: 4px; padding: 5px 10px; font-size: 11px;
+    font-weight: 700; text-transform: uppercase; letter-spacing: 1px; background: none; cursor: pointer;
+    transform: rotate(-3deg); margin-top: 12px;
+  }
+
+  .ticket-details {
+    margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--ticket-edge);
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; font-size: 14px;
+  }
+  .ticket-details .full { grid-column: 1 / -1; }
+  .ticket-details .lbl { color: var(--muted); }
+
+  .money-box {
+    margin-top: 12px; border-radius: 4px; padding: 10px; background: rgba(217,164,65,0.08);
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center;
+  }
+  .money-box .lbl { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+  .money-box .val { font-size: 14px; font-weight: 600; margin-top: 2px; }
+
+  .ticket-footer { margin-top: 12px; display: flex; align-items: center; justify-content: space-between; }
+  .ticket-meta { color: var(--muted); font-family: 'IBM Plex Mono', monospace; font-size: 11px; display: flex; align-items: center; gap: 4px; }
+  .delete-btn { background: none; border: none; color: var(--muted); padding: 4px; cursor: pointer; }
+  .delete-btn:active { color: var(--stamp-red); }
+
+  .fab {
+    position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px; border-radius: 999px;
+    background: var(--gold); color: var(--bg); border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    font-size: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 30;
+  }
+
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 40;
+    display: flex; align-items: flex-end; justify-content: center;
+  }
+  .modal-sheet {
+    background: var(--ticket); width: 100%; max-width: 480px; border-radius: 16px 16px 0 0;
+    padding: 22px; max-height: 88vh; overflow-y: auto;
+  }
+  @media (min-width: 640px) {
+    .modal-overlay { align-items: center; }
+    .modal-sheet { border-radius: 6px; }
+  }
+  .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .modal-title { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 600; margin: 0; }
+  .modal-close { background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; }
+  .field { margin-bottom: 16px; }
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  .photo-drop {
+    width: 100%; border: 2px dashed var(--ticket-edge); border-radius: 4px; padding: 18px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--muted);
+    font-size: 14px; background: none; cursor: pointer;
+  }
+  .photo-preview { position: relative; display: inline-block; }
+  .photo-preview img { width: 110px; height: 110px; object-fit: cover; border-radius: 4px; border: 2px solid var(--ticket-edge); display: block; }
+  .photo-remove {
+    position: absolute; top: -8px; right: -8px; width: 24px; height: 24px; border-radius: 999px;
+    background: var(--stamp-red); color: white; border: none; display: flex; align-items: center; justify-content: center;
+    font-size: 13px; cursor: pointer;
+  }
+  .saldo-preview { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+
+  .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .lightbox img { max-width: 100%; max-height: 100%; border-radius: 4px; }
+  .lightbox-close { position: absolute; top: 20px; right: 20px; background: none; border: none; color: white; font-size: 28px; cursor: pointer; }
+
+  .loading-text { color: var(--gold); text-transform: uppercase; letter-spacing: 3px; font-size: 13px; text-align: center; }
+</style>
+</head>
+<body>
+
+<div id="loadingScreen" class="center-screen">
+  <div class="loading-text">Cargando…</div>
+</div>
+
+<div id="loginScreen" class="center-screen hidden">
+  <div style="width:100%; max-width:380px;">
+    <div class="logo-badge">🥐</div>
+    <h1 class="brand">La Lista del Día</h1>
+    <p class="subtitle">Pedidos de la panadería, en un solo lugar</p>
+    <div class="card" style="margin-top:28px;">
+      <div class="perf-top"></div>
+      <label class="field-label">Tu nombre</label>
+      <input id="loginNombre" placeholder="Ej. Marisol, o 'Mostrador' si es la tablet" style="margin-bottom:16px;" />
+      <label class="field-label">Correo</label>
+      <input id="loginCorreo" placeholder="tucorreo@ejemplo.com" style="margin-bottom:8px;" />
+      <p id="loginError" class="login-error hidden"></p>
+      <button class="btn-primary" id="btnLogin">Entrar</button>
+      <p class="login-note">Esto solo te identifica ante tu equipo, no es una cuenta con contraseña. Todos comparten la misma lista de pedidos — celulares y la tablet del mostrador incluidos.</p>
+    </div>
+  </div>
+</div>
+
+<div id="appScreen" class="hidden">
+  <header>
+    <div class="header-row">
+      <div class="header-left">
+        <div class="header-badge">🥐</div>
+        <div>
+          <p class="header-title">La Lista del Día</p>
+          <p class="header-sub" id="userNameLabel"></p>
+        </div>
+      </div>
+      <div style="display:flex; gap:2px;">
+        <button class="icon-btn" id="btnRefresh" title="Actualizar">⟳</button>
+        <button class="icon-btn" id="btnLogout" title="Salir">⎋</button>
+      </div>
+    </div>
+    <div class="filters" id="filtersRow"></div>
+  </header>
+
+  <div id="errorBanner" class="banner-error hidden"></div>
+
+  <main id="ordersList"></main>
+
+  <button class="fab" id="btnAdd">+</button>
+</div>
+
+<div id="lightbox" class="lightbox hidden">
+  <button class="lightbox-close" id="btnCloseLightbox">✕</button>
+  <img id="lightboxImg" src="" alt="Referencia ampliada" />
+</div>
+
+<div id="formModal" class="modal-overlay hidden">
+  <div class="modal-sheet">
+    <div class="modal-head">
+      <p class="modal-title">Nuevo pedido</p>
+      <button class="modal-close" id="btnCloseForm">✕</button>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Nombre de quien hizo el pedido *</label>
+      <input id="fClienteNombre" placeholder="Nombre del cliente" />
+    </div>
+    <div class="field">
+      <label class="field-label">Número de contacto</label>
+      <input id="fContacto" placeholder="Ej. 55 1234 5678" />
+    </div>
+    <div class="field">
+      <label class="field-label">Características y pedido *</label>
+      <textarea id="fArticulo" rows="2" placeholder="Ej. Torta 3 leches, mediano, sin nueces, texto 'Feliz cumple Ana'"></textarea>
+    </div>
+    <div class="field">
+      <label class="field-label">Imagen de referencia (opcional)</label>
+      <input type="file" id="fImagenInput" accept="image/*" capture="environment" class="hidden" />
+      <button type="button" class="photo-drop" id="btnPickPhoto">📷 <span id="photoBtnLabel">Tomar o subir foto</span></button>
+      <div class="photo-preview hidden" id="photoPreviewWrap">
+        <img id="photoPreviewImg" src="" alt="Vista previa" />
+        <button type="button" class="photo-remove" id="btnRemovePhoto">✕</button>
+      </div>
+    </div>
+    <div class="row-2">
+      <div class="field">
+        <label class="field-label">Fecha de entrega</label>
+        <input type="date" id="fFecha" />
+      </div>
+      <div class="field">
+        <label class="field-label">Hora de retiro</label>
+        <input type="time" id="fHora" />
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label">Nombre de quien retira</label>
+      <input id="fQuienRetira" placeholder="Si es distinto a quien pidió" />
+    </div>
+    <div class="row-2">
+      <div class="field">
+        <label class="field-label">Total ($)</label>
+        <input type="number" inputmode="decimal" id="fTotal" placeholder="0.00" />
+      </div>
+      <div class="field">
+        <label class="field-label">Abono ($)</label>
+        <input type="number" inputmode="decimal" id="fAbono" placeholder="0.00" />
+      </div>
+    </div>
+    <p class="saldo-preview">Saldo pendiente: <strong id="saldoPreviewVal">$0.00</strong></p>
+    <button class="btn-primary" id="btnSubmitForm">Agregar a la lista →</button>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+  import {
+    getFirestore, collection, addDoc, updateDoc, deleteDoc, doc,
+    onSnapshot, query, orderBy
+  } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+
+  // ---- Tu configuración de Firebase ----
+  const firebaseConfig = {
+    apiKey: "AIzaSyBpeJztzwyjYK8wkEv9KSqSLioDvz9YPos",
+    authDomain: "pedidos-panaderia-21c4f.firebaseapp.com",
+    projectId: "pedidos-panaderia-21c4f",
+    storageBucket: "pedidos-panaderia-21c4f.firebasestorage.app",
+    messagingSenderId: "640317074307",
+    appId: "1:640317074307:web:02374cc9c38693d92364b6",
+    measurementId: "G-KD8P8M7YLJ"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const pedidosRef = collection(db, "pedidos");
+
+  const ESTADOS = [
+    { key: "pendiente", label: "Pendiente", color: "#B4432E" },
+    { key: "en_proceso", label: "En proceso", color: "#B98530" },
+    { key: "listo", label: "Listo", color: "#5C7A54" },
+    { key: "entregado", label: "Entregado", color: "#4A6B7A" },
+  ];
+  const nextEstado = (e) => {
+    const idx = ESTADOS.findIndex((s) => s.key === e);
+    return ESTADOS[(idx + 1) % ESTADOS.length].key;
+  };
+  const MAX_IMG_DIM = 480;
+  const IMG_QUALITY = 0.55;
+
+  let user = null;
+  let orders = [];
+  let filter = "todos";
+  let currentImagen = null;
+
+  const $ = (id) => document.getElementById(id);
+
+  function timeAgo(ts) {
+    const diff = Math.floor((Date.now() - ts) / 60000);
+    if (diff < 1) return "recién";
+    if (diff < 60) return `hace ${diff} min`;
+    const h = Math.floor(diff / 60);
+    if (h < 24) return `hace ${h} h`;
+    return `hace ${Math.floor(h / 24)} d`;
+  }
+  function numOr0(v) { const n = parseFloat(v); return isNaN(n) ? 0 : n; }
+  function money(n) { return n.toLocaleString("es", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function formatFecha(iso) {
+    if (!iso) return "";
+    const [y, m, d] = iso.split("-");
+    if (!y || !m || !d) return iso;
+    return `${d}/${m}/${y}`;
+  }
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
+  function compressImage(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          let { width, height } = img;
+          if (width > height && width > MAX_IMG_DIM) {
+            height = Math.round((height * MAX_IMG_DIM) / width);
+            width = MAX_IMG_DIM;
+          } else if (height > MAX_IMG_DIM) {
+            width = Math.round((width * MAX_IMG_DIM) / height);
+            height = MAX_IMG_DIM;
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width; canvas.height = height;
+          canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL("image/jpeg", IMG_QUALITY));
+        };
+        img.onerror = reject;
+        img.src = reader.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function showError(msg) {
+    const el = $("errorBanner");
+    el.textContent = msg;
+    el.classList.remove("hidden");
+    setTimeout(() => el.classList.add("hidden"), 5000);
+  }
+
+  // ---- Login (perfil guardado localmente en este navegador/celular) ----
+  function loadProfile() {
+    try {
+      const raw = localStorage.getItem("perfilUsuarioPanaderia");
+      if (raw) user = JSON.parse(raw);
+    } catch (e) {}
+  }
+  function saveProfile(p) {
+    try { localStorage.setItem("perfilUsuarioPanaderia", JSON.stringify(p)); } catch (e) {}
+  }
+
+  $("btnLogin").addEventListener("click", () => {
+    const nombre = $("loginNombre").value.trim();
+    const correo = $("loginCorreo").value.trim();
+    const errEl = $("loginError");
+    if (!nombre) { errEl.textContent = "Escribe tu nombre para continuar."; errEl.classList.remove("hidden"); return; }
+    if (!correo) { errEl.textContent = "Escribe tu correo para continuar."; errEl.classList.remove("hidden"); return; }
+    errEl.classList.add("hidden");
+    user = { nombre, correo };
+    saveProfile(user);
+    startApp();
+  });
+  ["loginNombre", "loginCorreo"].forEach((id) => {
+    $(id).addEventListener("keydown", (e) => { if (e.key === "Enter") $("btnLogin").click(); });
+  });
+
+  $("btnLogout").addEventListener("click", () => {
+    user = null;
+    try { localStorage.removeItem("perfilUsuarioPanaderia"); } catch (e) {}
+    $("appScreen").classList.add("hidden");
+    $("loginScreen").classList.remove("hidden");
+  });
+
+  // ---- Render filtros ----
+  function renderFilters() {
+    const counts = {};
+    ESTADOS.forEach((s) => counts[s.key] = orders.filter((o) => o.estado === s.key).length);
+    let html = `<button class="pill ${filter === "todos" ? "active" : ""}" data-filter="todos">Todos (${orders.length})</button>`;
+    ESTADOS.forEach((s) => {
+      html += `<button class="pill ${filter === s.key ? "active" : ""}" data-filter="${s.key}">
+        <span class="dot" style="background:${filter === s.key ? "#241812" : s.color}"></span>
+        ${s.label} (${counts[s.key] || 0})
+      </button>`;
+    });
+    $("filtersRow").innerHTML = html;
+    $("filtersRow").querySelectorAll(".pill").forEach((btn) => {
+      btn.addEventListener("click", () => { filter = btn.dataset.filter; renderFilters(); renderOrders(); });
+    });
+  }
+
+  // ---- Render lista de pedidos ----
+  function renderOrders() {
+    const list = orders.filter((o) => filter === "todos" || o.estado === filter);
+    const container = $("ordersList");
+    if (list.length === 0) {
+      container.innerHTML = `<div class="empty-state">${orders.length === 0 ? "Todavía no hay pedidos. Agrega el primero con el botón +." : "No hay pedidos con este estado."}</div>`;
+      return;
+    }
+    container.innerHTML = list.map((o) => {
+      const estado = ESTADOS.find((s) => s.key === o.estado) || ESTADOS[0];
+      const moneyBlock = (o.total > 0 || o.abono > 0) ? `
+        <div class="money-box">
+          <div><div class="lbl">Total</div><div class="val">$${money(o.total)}</div></div>
+          <div><div class="lbl">Abono</div><div class="val" style="color:#5C7A54">$${money(o.abono)}</div></div>
+          <div><div class="lbl">Saldo</div><div class="val" style="color:${o.saldo > 0 ? "#B4432E" : "#5C7A54"}">$${money(o.saldo)}</div></div>
+        </div>` : "";
+      const detailsRows = [];
+      if (o.fechaEntrega) detailsRows.push(`<p><span class="lbl">Entrega: </span>${formatFecha(o.fechaEntrega)}</p>`);
+      if (o.horaRetiro) detailsRows.push(`<p><span class="lbl">Hora: </span>${escapeHtml(o.horaRetiro)}</p>`);
+      if (o.quienRetira) detailsRows.push(`<p class="full"><span class="lbl">Retira: </span>${escapeHtml(o.quienRetira)}</p>`);
+      const detailsBlock = detailsRows.length ? `<div class="ticket-details">${detailsRows.join("")}</div>` : "";
+      const thumb = o.imagen ? `<button class="ticket-thumb" data-img="${o.id}"><img src="${o.imagen}" alt="Referencia" /></button>` : "";
+      return `
+        <div class="ticket-card">
+          <div class="ticket-perf"></div>
+          <div class="ticket-body">
+            <div class="ticket-top">
+              <div style="min-width:0; flex:1;">
+                <p class="ticket-name">${escapeHtml(o.clienteNombre)}</p>
+                <p class="ticket-item">${escapeHtml(o.articulo)}</p>
+                ${o.contacto ? `<p class="ticket-phone">📞 ${escapeHtml(o.contacto)}</p>` : ""}
+              </div>
+              ${thumb}
+            </div>
+            <button class="estado-stamp" data-estado="${o.id}" style="color:${estado.color}; border-color:${estado.color};">${estado.label}</button>
+            ${detailsBlock}
+            ${moneyBlock}
+            <div class="ticket-footer">
+              <p class="ticket-meta">🕐 ${escapeHtml(o.creadoPor)} · ${timeAgo(o.creadoEn)}</p>
+              <button class="delete-btn" data-delete="${o.id}">🗑</button>
+            </div>
+          </div>
+        </div>`;
+    }).join("");
+
+    container.querySelectorAll("[data-estado]").forEach((btn) => {
+      btn.addEventListener("click", () => cycleEstado(btn.dataset.estado));
+    });
+    container.querySelectorAll("[data-delete]").forEach((btn) => {
+      btn.addEventListener("click", () => deleteOrder(btn.dataset.delete));
+    });
+    container.querySelectorAll("[data-img]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const o = orders.find((x) => x.id === btn.dataset.img);
+        if (o && o.imagen) {
+          $("lightboxImg").src = o.imagen;
+          $("lightbox").classList.remove("hidden");
+        }
+      });
+    });
+  }
+
+  $("btnCloseLightbox").addEventListener("click", () => $("lightbox").classList.add("hidden"));
+  $("lightbox").addEventListener("click", (e) => { if (e.target.id === "lightbox") $("lightbox").classList.add("hidden"); });
+
+  async function cycleEstado(id) {
+    const order = orders.find((o) => o.id === id);
+    if (!order) return;
+    try {
+      await updateDoc(doc(db, "pedidos", id), { estado: nextEstado(order.estado) });
+    } catch (e) {
+      showError("No se pudo actualizar el estado. Intenta de nuevo.");
+    }
+  }
+
+  async function deleteOrder(id) {
+    try {
+      await deleteDoc(doc(db, "pedidos", id));
+    } catch (e) {
+      showError("No se pudo eliminar el pedido. Intenta de nuevo.");
+    }
+  }
+
+  // ---- Formulario nuevo pedido ----
+  function openForm() {
+    ["fClienteNombre","fContacto","fArticulo","fFecha","fHora","fQuienRetira","fTotal","fAbono"].forEach((id) => $(id).value = "");
+    currentImagen = null;
+    $("photoPreviewWrap").classList.add("hidden");
+    $("btnPickPhoto").classList.remove("hidden");
+    updateSaldoPreview();
+    $("formModal").classList.remove("hidden");
+  }
+  $("btnAdd").addEventListener("click", openForm);
+  $("btnCloseForm").addEventListener("click", () => $("formModal").classList.add("hidden"));
+
+  $("btnPickPhoto").addEventListener("click", () => $("fImagenInput").click());
+  $("fImagenInput").addEventListener("change", async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    $("photoBtnLabel").textContent = "Procesando…";
+    try {
+      currentImagen = await compressImage(file);
+      $("photoPreviewImg").src = currentImagen;
+      $("photoPreviewWrap").classList.remove("hidden");
+      $("btnPickPhoto").classList.add("hidden");
+    } catch (err) {
+      showError("No se pudo procesar la imagen, intenta con otra foto.");
+    } finally {
+      $("photoBtnLabel").textContent = "Tomar o subir foto";
+    }
+  });
+  $("btnRemovePhoto").addEventListener("click", () => {
+    currentImagen = null;
+    $("photoPreviewWrap").classList.add("hidden");
+    $("btnPickPhoto").classList.remove("hidden");
+    $("fImagenInput").value = "";
+  });
+
+  function updateSaldoPreview() {
+    const total = numOr0($("fTotal").value);
+    const abono = numOr0($("fAbono").value);
+    const saldo = Math.max(total - abono, 0);
+    $("saldoPreviewVal").textContent = `$${money(saldo)}`;
+    $("saldoPreviewVal").style.color = saldo > 0 ? "#B4432E" : "#5C7A54";
+  }
+  $("fTotal").addEventListener("input", updateSaldoPreview);
+  $("fAbono").addEventListener("input", updateSaldoPreview);
+
+  $("btnSubmitForm").addEventListener("click", async () => {
+    const clienteNombre = $("fClienteNombre").value.trim();
+    const articulo = $("fArticulo").value.trim();
+    if (!clienteNombre || !articulo) {
+      showError("Falta el nombre de quien pidió o la descripción del pedido.");
+      return;
+    }
+    const total = numOr0($("fTotal").value);
+    const abono = numOr0($("fAbono").value);
+    const nuevo = {
+      clienteNombre,
+      contacto: $("fContacto").value.trim(),
+      articulo,
+      fechaEntrega: $("fFecha").value,
+      horaRetiro: $("fHora").value,
+      quienRetira: $("fQuienRetira").value.trim(),
+      total, abono, saldo: Math.max(total - abono, 0),
+      imagen: currentImagen || null,
+      estado: "pendiente",
+      creadoPor: user.nombre,
+      creadoEn: Date.now(),
+    };
+    try {
+      await addDoc(pedidosRef, nuevo);
+      $("formModal").classList.add("hidden");
+    } catch (e) {
+      showError("No se pudo guardar el pedido. Si la foto es muy pesada, prueba con otra.");
+    }
+  });
+
+  // ---- Sincronización en tiempo real ----
+  function listenOrders() {
+    const q = query(pedidosRef, orderBy("creadoEn", "desc"));
+    onSnapshot(q, (snapshot) => {
+      orders = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      renderFilters();
+      renderOrders();
+    }, (err) => {
+      showError("No se pudo conectar con la base de datos. Revisa tu internet.");
+    });
+  }
+
+  $("btnRefresh").addEventListener("click", () => {
+    $("btnRefresh").style.transform = "rotate(360deg)";
+    setTimeout(() => $("btnRefresh").style.transform = "", 400);
+  });
+
+  function startApp() {
+    $("userNameLabel").textContent = user.nombre;
+    $("loginScreen").classList.add("hidden");
+    $("appScreen").classList.remove("hidden");
+    listenOrders();
+  }
+
+  // ---- Arranque ----
+  loadProfile();
+  $("loadingScreen").classList.add("hidden");
+  if (user) {
+    startApp();
+  } else {
+    $("loginScreen").classList.remove("hidden");
+  }
+</script>
+</body>
+</html>
